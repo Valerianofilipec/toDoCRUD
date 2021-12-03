@@ -42,17 +42,18 @@ class ToDo {
     this.created_at = new Date();
   }
 
- setDone(done=true) {
-    this.done= done;
+ setDone(done) {
+    this.done = done;
   }
   setDeadline(deadline) {
-    this.deadline= deadline;
+    this.deadline = deadline;
   }
   setTitle(title) {
-    this.title= title;
+    this.title = title;
   }
 }
 
+//DATABASE
 const users = [];
 
 function checksExistsUserAccount(request, response, next) {
@@ -84,10 +85,13 @@ function checksExistToDo(request, response, next){
 app.post('/users', (request, response) => {
   const {name, username, todos} = request.body;
 
+  if(users.find(e => e.username === username)){
+    return response.status(400).json({error: `This username: '${username}' already exist`});
+  }
   const user = new User(name, username, todos);
   users.push(user);
 
-  return response.json(users);
+  return response.status(201).json(user);
 });
 
 //A rota deve receber, pelo header da requisição, uma propriedade username contendo o username do usuário e retornar uma lista com todas as tarefas desse usuário.
@@ -105,7 +109,7 @@ app.post('/todos', checksExistsUserAccount, (request, response) => {
   user.todos.push(todo);
 
   console.log(user.todos);
-  return response.json(todo);
+  return response.status(201).json(todo);
 });
 
 //É preciso alterar apenas o title e o deadline da tarefa que possua o id igual ao id presente nos parâmetros da rota.
@@ -117,19 +121,23 @@ app.put('/todos/:id', checksExistsUserAccount, checksExistToDo, (request, respon
   todo.setDeadline(deadline);
 
 
-  return response.json(todo);
+  return response.status(200).json(todo);
 });
 
-app.patch('/todos/:id/done', checksExistsUserAccount, (request, response) => {
-  let {todo} = request;
-
+app.patch('/todos/:id/done', checksExistsUserAccount, checksExistToDo, (request, response) => {
+  const {todo} = request;
+  
   todo.setDone(true);
 
   return response.json(todo);
 });
 
-app.delete('/todos/:id', checksExistsUserAccount, (request, response) => {
-  // Complete aqui
+app.delete('/todos/:id', checksExistsUserAccount, checksExistToDo,(request, response) => {
+  const {user, todo} = request;
+
+  user.todos.splice(todo,1);
+  
+  return response.status(204);
 });
 
 module.exports = app;
