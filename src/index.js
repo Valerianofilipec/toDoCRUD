@@ -15,7 +15,7 @@ class User {
 	username;
 	todos = [];
 
-  constructor (name, username, todos){
+  constructor (name, username, todos = []){
     if (!this.id){
       this.id = uuid.v1();
     }
@@ -137,7 +137,7 @@ app.delete('/todos/:id', checksExistsUserAccount, checksExistToDo,(request, resp
 
   user.todos.splice(todo,1);
   
-  return response.status(204);
+  return response.status(204).json();
 });
 
 module.exports = app;
